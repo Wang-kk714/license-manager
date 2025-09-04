@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin: 10px 5px;
+            min-width: 150px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .file-upload {
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px dashed #e1e8ed;
+            border-radius: 8px;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+        }
+
+        .file-upload input[type="file"] {
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+
+        .success-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .file-input-wrapper:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(243, 156, 18, 0.3);
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+            opacity: 0;
+        }
+
+        .file-input-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+        }
+
+        .operation-area {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .operation-area h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .status pre {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .server-list-container textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .add-server-form {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .add-server-form h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .connected-servers {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .server-card {
+            border: 1px solid #e1e8ed;
+            border-radius: 6px;
+            padding: 8px 12px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 40px;
+        }
+
+        .server-card.connected {
+            border-color: #27ae60;
+            background: #f8fff8;
+        }
+
+        .server-card.error {
+            border-color: #e74c3c;
+            background: #fff8f8;
+        }
+
+        .server-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .server-info {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .server-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .server-status.connected {
+            background: #27ae60;
+            color: white;
+        }
+
+        .server-status.error {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .server-status.checking {
+            background: #f39c12;
+            color: white;
+        }
+
+        .server-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .server-actions .btn {
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+
+        .upload-progress {
+            margin-top: 15px;
+        }
+
+        .upload-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+
+        .upload-item.success {
+            border-color: #27ae60;
+            background: #f8fff8;
+        }
+
+        .upload-item.error {
+            border-color: #e74c3c;
+            background: #fff8f8;
+        }
+
+        .upload-item.processing {
+            border-color: #f39c12;
+            background: #fff8e1;
+        }
+
+        .upload-card {
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 15px;
+        }
+
+        .upload-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e1e8ed;
+            background: #f8f9fa;
+        }
+
+        .upload-card-header h5 {
+            margin: 0;
+            color: #333;
+            font-size: 1em;
+        }
+
+        .upload-lines {
+            padding: 15px;
+        }
+
+        .upload-line {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #e1e8ed;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+
+        .upload-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .server-dropdown {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 0.9em;
+        }
+
+        .file-input-small {
+            flex: 1;
+            position: relative;
+        }
+
+        .file-input-small input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-small .file-display {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        .file-input-small .file-display.has-file {
+            color: #27ae60;
+            border-color: #27ae60;
+        }
+
+        .remove-line-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .remove-line-btn:hover {
+            background: #c0392b;
+        }
+
+        .section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>License Manager</h1>
+            <p>Manage your license2_cli operations remotely</p>
+        </div>
+
+        <div class="content">
+            <!-- Server Connection -->
+            <div class="section">
+                <h3>Server Connections</h3>
+                
+                <!-- Add New Server Form -->
+                <div class="add-server-form">
+                    <h4>Add New Server</h4>
+                    <div class="form-group">
+                        <label for="server_ip">Host:Port</label>
+                        <input type="text" id="server_ip" placeholder="192.168.1.100:22" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" placeholder="yituadmin" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" placeholder="Enter password" required>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="addServer()">
+                        Add Server
+                    </button>
+                </div>
+
+                <!-- Connected Servers List -->
+                <div id="connected_servers" class="connected-servers">
+                    <!-- Server cards will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Status Display -->
+            <div id="status" class="status hidden"></div>
+
+
+            <!-- Batch Operations -->
+            <div class="section" id="batch_operations" style="display: none;">
+                <h3>Batch Operations</h3>
+                
+                <!-- Connected Servers Summary -->
+                <div class="operation-area">
+                    <h4>Connected Servers</h4>
+                    <div id="batch_server_summary">
+                        <p>No servers connected. Add servers in the Server Connections section above.</p>
+                    </div>
+                </div>
+
+                <!-- Batch Download Area -->
+                <div class="operation-area">
+                    <h4>Batch Download Sysinfo</h4>
+                    <button class="btn btn-success" onclick="batchDownloadSysinfo()">
+                        Download from All Servers
+                    </button>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                        Download sysinfo files from all servers in the list
+                    </p>
+                    <div id="batch_download_status" class="status hidden"></div>
+                </div>
+
+                <!-- Multi-File Upload Area -->
+                <div class="operation-area">
+                    <h4>Upload License Files</h4>
+                    <p style="margin-bottom: 15px; color: #666; font-size: 0.9em;">
+                        Assign license files to specific servers
+                    </p>
+                    
+                    <!-- Upload Card -->
+                    <div class="upload-card">
+                        <div class="upload-card-header">
+                            <h5>License File Assignments</h5>
+                            <button class="btn btn-sm btn-success" onclick="addUploadLine()">
+                                + Add File
+                            </button>
+                        </div>
+                        <div id="upload_lines" class="upload-lines">
+                            <!-- Upload lines will be added here dynamically -->
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="uploadAllFiles()" style="margin-top: 15px;">
+                        Upload All Files
+                    </button>
+                    
+                    <!-- Upload Progress List -->
+                    <div id="upload_progress_list" class="upload-progress hidden">
+                        <h5>Upload Progress:</h5>
+                        <div id="upload_items"></div>
+                    </div>
+                    
+                    <div id="batch_upload_status" class="status hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
