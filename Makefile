@@ -6,159 +6,123 @@ DOCKER_IMAGE = $(APP_NAME):latest
 NAMESPACE = default
 HELM_RELEASE = license-manager
 
+# Main targets
+.PHONY: help
+help:
+	@echo "License Manager - Available Commands:"
+	@echo ""
+	@echo "Development:"
+	@echo "  dev-deploy     - Build and deploy to Minikube (recommended)"
+	@echo "  dev-cleanup    - Clean up development environment"
+	@echo "  get-url        - Show application URL and setup instructions"
+	@echo ""
+	@echo "Docker:"
+	@echo "  build          - Build Docker image"
+	@echo "  clean          - Clean up Docker resources"
+	@echo ""
+	@echo "Kubernetes:"
+	@echo "  helm-upgrade   - Deploy/upgrade with Helm"
+	@echo "  helm-uninstall - Uninstall from Kubernetes"
+	@echo "  port-forward   - Port forward to local machine"
+	@echo ""
+	@echo "Testing:"
+	@echo "  test           - Run all tests"
+	@echo "  test-unit      - Run unit tests only"
+	@echo "  test-integration - Run integration tests only"
+
+# Development workflow
+.PHONY: dev-deploy
+dev-deploy: build helm-upgrade
+	@echo "🚀 Deploying License Manager to Minikube..."
+	@kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=license-manager --timeout=300s
+	@echo "✅ Application deployed successfully!"
+	@echo ""
+	@echo "📋 Next steps:"
+	@echo "1. Add to /etc/hosts: $(shell minikube ip) license-manager.local"
+	@echo "2. Access: http://license-manager.local"
+	@echo ""
+	@echo "💡 Run 'make get-url' for detailed setup instructions"
+
+.PHONY: dev-cleanup
+dev-cleanup: helm-uninstall
+	@echo "🧹 Development environment cleaned up"
+
+.PHONY: get-url
+get-url:
+	@echo "🌐 License Manager Access Information:"
+	@echo ""
+	@echo "Minikube IP: $(shell minikube ip)"
+	@echo "Application URL: http://license-manager.local"
+	@echo ""
+	@echo "📝 Setup Instructions:"
+	@echo "1. Add this line to your /etc/hosts file:"
+	@echo "   $(shell minikube ip) license-manager.local"
+	@echo ""
+	@echo "2. Then access: http://license-manager.local"
+	@echo ""
+	@echo "🔧 Quick setup:"
+	@echo "   echo '$(shell minikube ip) license-manager.local' | sudo tee -a /etc/hosts"
+
 # Docker commands
 .PHONY: build
 build:
-	docker build -t $(DOCKER_IMAGE) .
+	@echo "🔨 Building Docker image..."
+	@eval $$(minikube docker-env) && docker build -t $(DOCKER_IMAGE) .
+	@echo "✅ Docker image built successfully"
 
 .PHONY: clean
 clean:
-	docker rmi $(DOCKER_IMAGE) 2>/dev/null || true
+	@echo "🧹 Cleaning up Docker resources..."
+	@docker rmi $(DOCKER_IMAGE) 2>/dev/null || true
+	@echo "✅ Cleanup completed"
 
-# Minikube commands
-.PHONY: minikube-start
-minikube-start:
-	minikube start
-	minikube addons enable ingress
-	minikube addons enable ingress-dns
-
-.PHONY: minikube-stop
-minikube-stop:
-	minikube stop
-
-.PHONY: minikube-status
-minikube-status:
-	minikube status
-
-.PHONY: minikube-dashboard
-minikube-dashboard:
-	minikube dashboard
-
-# Helm commands
-.PHONY: helm-install
-helm-install:
-	helm install $(HELM_RELEASE) ./helm-charts/license-manager -n $(NAMESPACE)
-
+# Kubernetes/Helm commands
 .PHONY: helm-upgrade
 helm-upgrade:
-	helm upgrade $(HELM_RELEASE) ./helm-charts/license-manager -n $(NAMESPACE)
+	@echo "📦 Deploying with Helm..."
+	@helm upgrade --install $(HELM_RELEASE) ./helm-charts/license-manager --set image.tag=latest
+	@echo "✅ Helm deployment completed"
 
 .PHONY: helm-uninstall
 helm-uninstall:
-	helm uninstall $(HELM_RELEASE) -n $(NAMESPACE)
+	@echo "🗑️  Uninstalling from Kubernetes..."
+	@helm uninstall $(HELM_RELEASE) 2>/dev/null || true
+	@echo "✅ Uninstall completed"
 
-.PHONY: helm-status
-helm-status:
-	helm status $(HELM_RELEASE) -n $(NAMESPACE)
+.PHONY: port-forward
+port-forward:
+	@echo "🔗 Port forwarding to localhost:8080..."
+	@echo "Access at: http://localhost:8080"
+	@kubectl port-forward service/$(HELM_RELEASE) 8080:80
 
-.PHONY: helm-list
-helm-list:
-	helm list -n $(NAMESPACE)
-
-# Development commands
-.PHONY: dev-setup
-dev-setup: minikube-start
-	@echo "Setting up development environment..."
-	@echo "Minikube started. You can now run 'make helm-install' to deploy the application."
-
-.PHONY: dev-deploy
-dev-deploy: build helm-upgrade
-	@echo "Application deployed to minikube"
-	@echo "Waiting for ingress to be ready..."
-	@kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=license-manager --timeout=300s
-	@echo "Adding license-manager.local to /etc/hosts..."
-	@echo "$(shell minikube ip) license-manager.local" | sudo tee -a /etc/hosts > /dev/null || echo "Please add '$(shell minikube ip) license-manager.local' to your /etc/hosts file"
-	@echo "Access the application at: http://license-manager.local"
-
-.PHONY: dev-cleanup
-dev-cleanup: helm-uninstall minikube-stop
-	@echo "Development environment cleaned up"
-
-# Test commands
+# Testing
 .PHONY: test
 test:
-	@echo "Running all tests with Docker..."
+	@echo "🧪 Running all tests..."
 	@docker run --rm -v $(PWD):/app -w /app golang:1.21-alpine go test ./tests/...
 
 .PHONY: test-unit
 test-unit:
-	@echo "Running unit tests..."
+	@echo "🧪 Running unit tests..."
 	@docker run --rm -v $(PWD):/app -w /app golang:1.21-alpine go test ./tests/unit/...
 
 .PHONY: test-integration
 test-integration:
-	@echo "Running integration tests..."
+	@echo "🧪 Running integration tests..."
 	@docker run --rm -v $(PWD):/app -w /app golang:1.21-alpine go test ./tests/integration/...
 
-.PHONY: test-verbose
-test-verbose:
-	@echo "Running tests with verbose output..."
-	@docker run --rm -v $(PWD):/app -w /app golang:1.21-alpine go test -v ./tests/...
-
-.PHONY: test-coverage
-test-coverage:
-	@echo "Running tests with coverage..."
-	@docker run --rm -v $(PWD):/app -w /app golang:1.21-alpine go test -cover ./tests/...
-
-.PHONY: test-benchmark
-test-benchmark:
-	@echo "Running benchmarks..."
-	@docker run --rm -v $(PWD):/app -w /app golang:1.21-alpine go test -bench=. ./tests/...
-
 # Utility commands
-.PHONY: port-forward
-port-forward:
-	kubectl port-forward service/$(HELM_RELEASE) 8080:80
+.PHONY: minikube-start
+minikube-start:
+	@echo "🚀 Starting Minikube..."
+	@minikube start
+	@minikube addons enable ingress
+	@echo "✅ Minikube started with ingress enabled"
 
-.PHONY: get-url
-get-url:
-	@echo "Application URL: http://license-manager.local"
-	@echo "Minikube IP: $(shell minikube ip)"
-	@echo "Make sure '$(shell minikube ip) license-manager.local' is in your /etc/hosts file"
+.PHONY: minikube-status
+minikube-status:
+	@minikube status
 
-.PHONY: check-ingress
-check-ingress:
-	@echo "Checking ingress status..."
-	@kubectl get ingress
-	@kubectl describe ingress $(HELM_RELEASE)
-
-.PHONY: add-hosts
-add-hosts:
-	@echo "Adding license-manager.local to /etc/hosts..."
-	@echo "$(shell minikube ip) license-manager.local" | sudo tee -a /etc/hosts > /dev/null || echo "Please add '$(shell minikube ip) license-manager.local' to your /etc/hosts file"
-
-.PHONY: help
-help:
-	@echo "Available commands:"
-	@echo "  build          - Build Docker image"
-	@echo "  clean          - Clean up Docker resources"
-	@echo ""
-	@echo "Minikube commands:"
-	@echo "  minikube-start    - Start minikube cluster"
-	@echo "  minikube-stop     - Stop minikube cluster"
-	@echo "  minikube-status   - Show minikube status"
-	@echo "  minikube-dashboard - Open minikube dashboard"
-	@echo ""
-	@echo "Helm commands:"
-	@echo "  helm-install   - Install with Helm"
-	@echo "  helm-upgrade   - Upgrade with Helm"
-	@echo "  helm-uninstall - Uninstall with Helm"
-	@echo "  helm-status    - Show Helm release status"
-	@echo "  helm-list      - List Helm releases"
-	@echo ""
-	@echo "Testing:"
-	@echo "  test           - Run all tests with Docker"
-	@echo "  test-unit      - Run unit tests only"
-	@echo "  test-integration - Run integration tests only"
-	@echo "  test-verbose   - Run tests with verbose output"
-	@echo "  test-coverage  - Run tests with coverage report"
-	@echo "  test-benchmark - Run benchmark tests"
-	@echo ""
-	@echo "Development:"
-	@echo "  dev-setup      - Setup development environment"
-	@echo "  dev-deploy     - Deploy to minikube"
-	@echo "  dev-cleanup    - Cleanup development environment"
-	@echo "  port-forward   - Port forward to local machine"
-	@echo "  get-url        - Get application URL"
-	@echo "  check-ingress  - Check ingress status"
-	@echo "  add-hosts      - Add license-manager.local to /etc/hosts"
+.PHONY: logs
+logs:
+	@kubectl logs -l app.kubernetes.io/name=license-manager --tail=50 -f
