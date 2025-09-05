@@ -106,7 +106,7 @@ async function checkServerLicenseCLI(server) {
     if (!card) return;
     
     try {
-        const response = await fetch('/api/check-license-cli', {
+        const response = await fetch('/license-manager/api/check-license-cli', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -165,7 +165,7 @@ async function downloadFromServer(serverId) {
     if (!server || !server.connected) return;
     
     try {
-        const response = await fetch('/api/download-sysinfo', {
+        const response = await fetch('/license-manager/api/download-sysinfo', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -409,7 +409,7 @@ async function batchDownloadSysinfo() {
     for (let i = 0; i < servers.length; i++) {
         const server = servers[i];
         try {
-            const response = await fetch('/api/download-sysinfo', {
+            const response = await fetch('/license-manager/api/download-sysinfo', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -551,7 +551,7 @@ async function uploadAllFiles() {
             formData.append('username', task.server.username);
             formData.append('password', task.server.password);
 
-            const response = await fetch('/api/upload-license', {
+            const response = await fetch('/license-manager/api/upload-license', {
                 method: 'POST',
                 body: formData
             });
